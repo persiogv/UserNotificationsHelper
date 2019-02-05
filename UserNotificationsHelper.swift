@@ -11,7 +11,6 @@ enum UserNotificationsHelperError: Error {
     case unauthorized
     case unauthorizedOptions(options: UNAuthorizationOptions)
     case unhandledError(error: Error)
-    case requestError(error: Error)
 }
 
 struct UserNotificationsHelper {
@@ -29,11 +28,12 @@ struct UserNotificationsHelper {
             authorizedOptions { (results) in
                 do {
                     let authorizedOptions = try results()
+                    
                     if authorizedOptions.contains(options) {
                         let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
                         center.add(request) { (error) in
                             guard let error = error else { return completion {} }
-                            return completion { throw UserNotificationsHelperError.requestError(error: error) }
+                            return completion { throw UserNotificationsHelperError.unhandledError(error: error) }
                         }
                     }
                     
@@ -51,7 +51,7 @@ struct UserNotificationsHelper {
     static func requestAuthorization(for options: UNAuthorizationOptions, completion: @escaping (() throws -> Bool) -> Void) {
         center.requestAuthorization(options: options) { (success, error) in
             guard let error = error else { return completion { return success } }
-            completion { throw UserNotificationsHelperError.requestError(error: error) }
+            completion { throw UserNotificationsHelperError.unhandledError(error: error) }
         }
     }
     
