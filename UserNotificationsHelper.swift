@@ -23,7 +23,9 @@ struct UserNotificationsHelper {
                                           trigger: UNCalendarNotificationTrigger?,
                                           completion: @escaping (() throws -> Void) -> Void) {
         center.getNotificationSettings { (settings) in
-            guard settings.authorizationStatus == .authorized else { return completion { throw UserNotificationsHelperError.unauthorized } }
+            guard settings.authorizationStatus == .authorized else {
+                return completion { throw UserNotificationsHelperError.unauthorized }
+            }
             
             authorizedOptions { (results) in
                 do {
@@ -35,6 +37,7 @@ struct UserNotificationsHelper {
                             guard let error = error else { return completion {} }
                             return completion { throw UserNotificationsHelperError.unhandledError(error: error) }
                         }
+                        return
                     }
                     
                     completion {
@@ -76,6 +79,14 @@ struct UserNotificationsHelper {
             
             completion { return options }
         }
+    }
+    
+    static func registerNotificationCategories(_ categories: Set<UNNotificationCategory>) {
+        center.setNotificationCategories(categories)
+    }
+    
+    static func unscheduleAllLocalNotifications() {
+        center.removeAllPendingNotificationRequests()
     }
     
     // MARK: - Private statements
